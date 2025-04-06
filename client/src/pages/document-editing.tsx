@@ -297,6 +297,15 @@ export default function DocumentEditing() {
                 <VersionHistory 
                   versions={versions || []}
                   documentId={document?.id}
+                  onRestoreVersion={(version) => {
+                    if (document) {
+                      saveDocument(version.content);
+                      toast({
+                        title: "Version Restored",
+                        description: "Document has been restored to a previous version."
+                      });
+                    }
+                  }}
                 />
               </div>
               

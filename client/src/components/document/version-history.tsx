@@ -7,9 +7,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface VersionHistoryProps {
   documentId?: number;
   versions: Version[];
+  onRestoreVersion?: (version: Version) => void;
 }
 
-export default function VersionHistory({ documentId, versions }: VersionHistoryProps) {
+export default function VersionHistory({ documentId, versions, onRestoreVersion }: VersionHistoryProps) {
   return (
     <div className="mt-6">
       <h3 className="text-sm font-medium text-gray-600 mb-2">Version History</h3>
@@ -28,7 +29,8 @@ export default function VersionHistory({ documentId, versions }: VersionHistoryP
               <VersionItem 
                 key={version.id} 
                 version={version} 
-                isLast={idx === versions.length - 1} 
+                isLast={idx === versions.length - 1}
+                onRestore={onRestoreVersion}
               />
             ))}
           </ul>
@@ -41,9 +43,10 @@ export default function VersionHistory({ documentId, versions }: VersionHistoryP
 interface VersionItemProps {
   version: Version;
   isLast: boolean;
+  onRestore?: (version: Version) => void;
 }
 
-function VersionItem({ version, isLast }: VersionItemProps) {
+function VersionItem({ version, isLast, onRestore }: VersionItemProps) {
   // Format the date
   const formatDate = (date: Date) => {
     const now = new Date();
@@ -94,7 +97,8 @@ function VersionItem({ version, isLast }: VersionItemProps) {
   };
   
   const { icon, bgColor, description } = getVersionMeta();
-  const createdAt = new Date(version.createdAt);
+  // Handle null date safely
+  const createdAt = version.createdAt ? new Date(version.createdAt) : new Date();
 
   return (
     <li>
@@ -113,7 +117,18 @@ function VersionItem({ version, isLast }: VersionItemProps) {
           </div>
           <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
             <div>
-              <p className="text-sm text-gray-500">{description}</p>
+              <p className="text-sm text-gray-500">
+                {description}
+                {onRestore && (
+                  <button 
+                    className="ml-2 text-primary-600 hover:text-primary-800 text-xs underline focus:outline-none"
+                    onClick={() => onRestore(version)}
+                    title="Restore this version"
+                  >
+                    Restore
+                  </button>
+                )}
+              </p>
             </div>
             <div className="text-right text-sm whitespace-nowrap text-gray-500">
               <time dateTime={createdAt.toISOString()}>{formatDate(createdAt)}</time>

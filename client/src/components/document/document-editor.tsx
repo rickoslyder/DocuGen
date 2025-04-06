@@ -17,6 +17,7 @@ interface DocumentEditorProps {
 export default function DocumentEditor({ document, isLoading, onChange }: DocumentEditorProps) {
   const [content, setContent] = useState("");
   
+  // Update local state when document changes
   useEffect(() => {
     if (document) {
       setContent(document.content);
@@ -37,6 +38,16 @@ export default function DocumentEditor({ document, isLoading, onChange }: Docume
       onChange(html);
     },
   });
+  
+  // Update editor content when document changes
+  useEffect(() => {
+    if (editor && document) {
+      // Only update if the content is different to avoid cursor jumps during typing
+      if (editor.getHTML() !== document.content) {
+        editor.commands.setContent(document.content);
+      }
+    }
+  }, [editor, document]);
   
   const documentTitle = document 
     ? DOCUMENT_TYPE_INFO[document.type as keyof typeof DOCUMENT_TYPE_INFO]?.name || document.type.replace(/-/g, ' ')
