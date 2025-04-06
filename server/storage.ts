@@ -210,6 +210,8 @@ export class DatabaseStorage implements IStorage {
 
 I'm looking to collaborate with you to turn this into a detailed project request. Let's iterate together until we have a complete request.
 
+IMPORTANT: Always provide COMPLETE content in your response. Never use placeholders or references like "(content unchanged)" or "(remains the same)". Always write out the full content, even if it's similar to previous versions.
+
 After each of our exchanges, please return the current state of the request in this format:
 
 \`\`\`request
@@ -254,6 +256,8 @@ The goal is to create a comprehensive project request that can be used as a foun
 {{PROJECT_REQUEST}}
 
 Your specification will be used as direct input for planning & code generation, so it must be precise, structured, and comprehensive.
+
+IMPORTANT: Always provide COMPLETE content in your response. Never use placeholders or references like "(content unchanged)" or "(remains the same)". Always write out the full content, even if it's similar to previous versions.
 
 Begin by analyzing the project requirements and planning your approach. Consider:
 1. Core system architecture and key workflows
@@ -341,6 +345,8 @@ Ensure your specification is extremely detailed, providing specific implementati
 {{PROJECT_REQUEST}}
 
 Your PRD should serve as the definitive reference for what will be built, for whom, and why. It should bridge technical and business requirements while keeping focus on user needs.
+
+IMPORTANT: Always provide COMPLETE content in your response. Never use placeholders or references like "(content unchanged)" or "(remains the same)". Always write out the full content, even if it's similar to previous versions.
 
 Generate a detailed PRD using the following structure:
 
@@ -431,6 +437,8 @@ Ensure your PRD is clear, specific, and actionable. Focus on the "what" and "why
 
 Create detailed user flow documentation that maps out the complete journey users will take through the application. For each significant user journey, include both text descriptions and visual mermaid diagrams.
 
+IMPORTANT: Always provide COMPLETE content in your response. Never use placeholders or references like "(content unchanged)" or "(remains the same)". Always write out the full content, even if it's similar to previous versions.
+
 Use the following structure:
 
 \`\`\`markdown
@@ -502,6 +510,8 @@ Focus on creating detailed, comprehensive flows that cover all possible paths us
 {{PROJECT_REQUEST}}
 
 Create a detailed UI guide that establishes consistent design patterns across the application. This guide will serve as the reference for all visual elements and interactions.
+
+IMPORTANT: Always provide COMPLETE content in your response. Never use placeholders or references like "(content unchanged)" or "(remains the same)". Always write out the full content, even if it's similar to previous versions.
 
 Use the following structure:
 
@@ -626,6 +636,8 @@ Include visual examples wherever possible, especially for components in differen
 {{TECHNICAL_SPEC}}
 
 Break down the development process into manageable steps that can be executed sequentially. Each step should focus on a specific aspect of the application and should be concrete enough to implement in a single iteration.
+
+IMPORTANT: Always provide COMPLETE content in your response. Never use placeholders or references like "(content unchanged)" or "(remains the same)". Always write out the full content, even if it's similar to previous versions.
 
 Present your plan using the following format:
 
