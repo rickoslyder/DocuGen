@@ -4,9 +4,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import { Bold, Italic, List, ListOrdered, Quote, Undo, Redo, Link as LinkIcon, Code } from "lucide-react";
+import { Bold, Italic, List, ListOrdered, Quote, Undo, Redo, Link as LinkIcon, Code, FileCode, FileText } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { DOCUMENT_TYPE_INFO } from "@/lib/database";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 interface DocumentEditorProps {
   document: Document | null | undefined;
@@ -16,11 +18,14 @@ interface DocumentEditorProps {
 
 export default function DocumentEditor({ document, isLoading, onChange }: DocumentEditorProps) {
   const [content, setContent] = useState("");
+  const [isMarkdownMode, setIsMarkdownMode] = useState(false);
+  const [markdownContent, setMarkdownContent] = useState("");
   
   // Update local state when document changes
   useEffect(() => {
     if (document) {
       setContent(document.content);
+      setMarkdownContent(document.content);
     }
   }, [document]);
   
@@ -41,13 +46,34 @@ export default function DocumentEditor({ document, isLoading, onChange }: Docume
   
   // Update editor content when document changes
   useEffect(() => {
-    if (editor && document) {
+    if (editor && document && !isMarkdownMode) {
       // Only update if the content is different to avoid cursor jumps during typing
       if (editor.getHTML() !== document.content) {
         editor.commands.setContent(document.content);
       }
     }
-  }, [editor, document]);
+  }, [editor, document, isMarkdownMode]);
+  
+  // Handle markdown content changes
+  const handleMarkdownChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newMarkdown = e.target.value;
+    setMarkdownContent(newMarkdown);
+    onChange(newMarkdown);
+  };
+  
+  // Handle toggle between rich text and markdown modes
+  const toggleEditMode = () => {
+    if (isMarkdownMode) {
+      // Switch from Markdown to Rich Text
+      if (editor) {
+        editor.commands.setContent(markdownContent);
+      }
+    } else {
+      // Switch from Rich Text to Markdown
+      setMarkdownContent(content);
+    }
+    setIsMarkdownMode(!isMarkdownMode);
+  };
   
   const documentTitle = document 
     ? DOCUMENT_TYPE_INFO[document.type as keyof typeof DOCUMENT_TYPE_INFO]?.name || document.type.replace(/-/g, ' ')
@@ -80,7 +106,25 @@ export default function DocumentEditor({ document, isLoading, onChange }: Docume
     <div className="h-full flex flex-col">
       <div className="border-b border-gray-200 px-4 py-4 sm:px-6 flex items-center justify-between">
         <h2 className="text-lg font-medium text-gray-900">{documentTitle}</h2>
-        <div className="flex items-center">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleEditMode}
+            className="flex items-center gap-1"
+          >
+            {isMarkdownMode ? (
+              <>
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">Rich Text</span>
+              </>
+            ) : (
+              <>
+                <FileCode className="h-4 w-4" />
+                <span className="hidden sm:inline">Markdown</span>
+              </>
+            )}
+          </Button>
           <span className={cn(
             "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
             document.status === "completed"
@@ -96,76 +140,87 @@ export default function DocumentEditor({ document, isLoading, onChange }: Docume
         </div>
       </div>
       
-      {/* Rich Text Editor Toolbar */}
-      <div className="border-b border-gray-200 px-4 py-2 flex items-center space-x-1">
-        <Toggle
-          size="sm"
-          pressed={editor?.isActive('bold')}
-          onPressedChange={() => editor?.chain().focus().toggleBold().run()}
-          aria-label="Bold"
-        >
-          <Bold className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          size="sm"
-          pressed={editor?.isActive('italic')}
-          onPressedChange={() => editor?.chain().focus().toggleItalic().run()}
-          aria-label="Italic"
-        >
-          <Italic className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          size="sm"
-          pressed={editor?.isActive('bulletList')}
-          onPressedChange={() => editor?.chain().focus().toggleBulletList().run()}
-          aria-label="Bullet List"
-        >
-          <List className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          size="sm"
-          pressed={editor?.isActive('orderedList')}
-          onPressedChange={() => editor?.chain().focus().toggleOrderedList().run()}
-          aria-label="Ordered List"
-        >
-          <ListOrdered className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          size="sm"
-          pressed={editor?.isActive('blockquote')}
-          onPressedChange={() => editor?.chain().focus().toggleBlockquote().run()}
-          aria-label="Quote"
-        >
-          <Quote className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          size="sm"
-          pressed={editor?.isActive('code')}
-          onPressedChange={() => editor?.chain().focus().toggleCode().run()}
-          aria-label="Code"
-        >
-          <Code className="h-4 w-4" />
-        </Toggle>
-        <div className="h-6 mx-2 border-l border-gray-300"></div>
-        <Toggle
-          size="sm"
-          onPressedChange={() => editor?.chain().focus().undo().run()}
-          aria-label="Undo"
-        >
-          <Undo className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          size="sm"
-          onPressedChange={() => editor?.chain().focus().redo().run()}
-          aria-label="Redo"
-        >
-          <Redo className="h-4 w-4" />
-        </Toggle>
-      </div>
+      {/* Rich Text Editor Toolbar - Only show in rich text mode */}
+      {!isMarkdownMode && (
+        <div className="border-b border-gray-200 px-4 py-2 flex items-center space-x-1">
+          <Toggle
+            size="sm"
+            pressed={editor?.isActive('bold')}
+            onPressedChange={() => editor?.chain().focus().toggleBold().run()}
+            aria-label="Bold"
+          >
+            <Bold className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            size="sm"
+            pressed={editor?.isActive('italic')}
+            onPressedChange={() => editor?.chain().focus().toggleItalic().run()}
+            aria-label="Italic"
+          >
+            <Italic className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            size="sm"
+            pressed={editor?.isActive('bulletList')}
+            onPressedChange={() => editor?.chain().focus().toggleBulletList().run()}
+            aria-label="Bullet List"
+          >
+            <List className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            size="sm"
+            pressed={editor?.isActive('orderedList')}
+            onPressedChange={() => editor?.chain().focus().toggleOrderedList().run()}
+            aria-label="Ordered List"
+          >
+            <ListOrdered className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            size="sm"
+            pressed={editor?.isActive('blockquote')}
+            onPressedChange={() => editor?.chain().focus().toggleBlockquote().run()}
+            aria-label="Quote"
+          >
+            <Quote className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            size="sm"
+            pressed={editor?.isActive('code')}
+            onPressedChange={() => editor?.chain().focus().toggleCode().run()}
+            aria-label="Code"
+          >
+            <Code className="h-4 w-4" />
+          </Toggle>
+          <div className="h-6 mx-2 border-l border-gray-300"></div>
+          <Toggle
+            size="sm"
+            onPressedChange={() => editor?.chain().focus().undo().run()}
+            aria-label="Undo"
+          >
+            <Undo className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            size="sm"
+            onPressedChange={() => editor?.chain().focus().redo().run()}
+            aria-label="Redo"
+          >
+            <Redo className="h-4 w-4" />
+          </Toggle>
+        </div>
+      )}
       
-      {/* Editor Content */}
+      {/* Editor Content - Show either rich text editor or markdown textarea */}
       <div className="flex-grow overflow-auto p-4">
-        <EditorContent editor={editor} className="prose max-w-none h-full" />
+        {isMarkdownMode ? (
+          <Textarea 
+            value={markdownContent}
+            onChange={handleMarkdownChange}
+            className="h-full w-full resize-none font-mono text-sm leading-relaxed"
+            placeholder="Type or paste Markdown here..."
+          />
+        ) : (
+          <EditorContent editor={editor} className="prose max-w-none h-full" />
+        )}
       </div>
     </div>
   );

@@ -23,30 +23,30 @@ export default function DocumentActions({
           size="sm" 
           onClick={onRegenerate}
           disabled={isSaving}
-          className="justify-start"
+          className="justify-start text-left"
         >
-          <RefreshCw className="h-4 w-4 mr-1" />
-          Regenerate
+          <RefreshCw className="h-4 w-4 mr-1 flex-shrink-0" />
+          <span className="truncate">Regenerate</span>
         </Button>
         <Button 
           variant="outline" 
           size="sm" 
           onClick={onSave}
           disabled={isSaving}
-          className="justify-start"
+          className="justify-start text-left"
         >
-          <Save className="h-4 w-4 mr-1" />
-          {isSaving ? "Saving..." : "Save Changes"}
+          <Save className="h-4 w-4 mr-1 flex-shrink-0" />
+          <span className="truncate">{isSaving ? "Saving..." : "Save Changes"}</span>
         </Button>
         <Button 
           variant="outline" 
           size="sm" 
           onClick={onCustomizePrompt}
           disabled={isSaving}
-          className="justify-start"
+          className="justify-start text-left"
         >
-          <Edit className="h-4 w-4 mr-1" />
-          Customize Prompt
+          <Edit className="h-4 w-4 mr-1 flex-shrink-0" />
+          <span className="truncate">Customize Prompt</span>
         </Button>
       </div>
     </div>

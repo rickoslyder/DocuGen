@@ -2,15 +2,157 @@ import { apiRequest } from "./queryClient";
 import { Document, DOCUMENT_TYPE_ORDER, DocumentType, InsertDocument, Project } from "@shared/schema";
 import { createDocument, createVersion, getDefaultTemplate, getDocument, getDocuments, updateDocument } from "./database";
 
+// Define schemas for structured output
+export const documentSchemas: Record<string, any> = {
+  // Schema for project request
+  "project-request": {
+    type: "object",
+    properties: {
+      projectName: { type: "string", description: "The name of the project" },
+      overview: { type: "string", description: "Brief overview of the project" },
+      businessGoals: { type: "array", items: { type: "string" }, description: "Business goals the project aims to achieve" },
+      targetAudience: { type: "string", description: "Description of the target audience" },
+      keyFeatures: { type: "array", items: { type: "string" }, description: "Key features of the project" },
+      mainContent: { type: "string", description: "The complete, formatted project request document" },
+    },
+    required: ["mainContent"]
+  },
+  // Schema for technical spec
+  "technical-spec": {
+    type: "object",
+    properties: {
+      architecture: { type: "string", description: "Description of the system architecture" },
+      dataModel: { type: "string", description: "Data model description, including entities and relationships" },
+      apiEndpoints: { type: "array", items: { type: "object", properties: {
+        path: { type: "string" },
+        method: { type: "string" },
+        description: { type: "string" }
+      }}},
+      technologies: { type: "array", items: { type: "string" }, description: "List of technologies used" },
+      mainContent: { type: "string", description: "The complete, formatted technical specification document" },
+    },
+    required: ["mainContent"]
+  },
+  // Schema for product requirements document
+  "prd": {
+    type: "object",
+    properties: {
+      vision: { type: "string", description: "The product vision statement" },
+      objectives: { type: "array", items: { type: "string" }, description: "Key product objectives" },
+      userStories: { type: "array", items: { type: "object", properties: {
+        role: { type: "string" },
+        goal: { type: "string" },
+        benefit: { type: "string" }
+      }}},
+      features: { type: "array", items: { type: "object", properties: {
+        name: { type: "string" },
+        description: { type: "string" },
+        priority: { type: "string" }
+      }}},
+      mainContent: { type: "string", description: "The complete, formatted PRD document" },
+    },
+    required: ["mainContent"]
+  },
+  // Schema for user flows
+  "user-flows": {
+    type: "object",
+    properties: {
+      flows: { type: "array", items: { type: "object", properties: {
+        name: { type: "string" },
+        steps: { type: "array", items: { type: "string" } },
+        diagram: { type: "string" }
+      }}},
+      mainContent: { type: "string", description: "The complete, formatted user flows document" },
+    },
+    required: ["mainContent"]
+  },
+  // Schema for UI guide
+  "ui-guide": {
+    type: "object",
+    properties: {
+      colors: { type: "object", properties: {
+        primary: { type: "string" },
+        secondary: { type: "string" },
+        accent: { type: "string" },
+        background: { type: "string" },
+        text: { type: "string" }
+      }},
+      typography: { type: "object", properties: {
+        headings: { type: "string" },
+        body: { type: "string" },
+        sizing: { type: "string" }
+      }},
+      mainContent: { type: "string", description: "The complete, formatted UI style guide document" },
+    },
+    required: ["mainContent"]
+  },
+  // Schema for implementation plan
+  "implementation-plan": {
+    type: "object",
+    properties: {
+      phases: { type: "array", items: { type: "object", properties: {
+        name: { type: "string" },
+        tasks: { type: "array", items: { type: "string" } },
+        duration: { type: "string" }
+      }}},
+      resources: { type: "array", items: { type: "string" } },
+      risks: { type: "array", items: { type: "object", properties: {
+        description: { type: "string" },
+        mitigation: { type: "string" }
+      }}},
+      mainContent: { type: "string", description: "The complete, formatted implementation plan document" },
+    },
+    required: ["mainContent"]
+  },
+  // Default schema for any document type
+  "default": {
+    type: "object",
+    properties: {
+      mainContent: { type: "string", description: "The complete, formatted document content" },
+      sections: { type: "array", items: { type: "object", properties: {
+        title: { type: "string" },
+        content: { type: "string" }
+      }}},
+    },
+    required: ["mainContent"]
+  }
+};
+
 // Generate a document using Gemini API
 export async function generateDocumentContent(
   prompt: string,
-  model: "gemini-2.5-pro-preview-03-25" | "gemini-pro" | "gemini-2.0-flash" = "gemini-2.5-pro-preview-03-25"
+  model: "gemini-2.5-pro-preview-03-25" | "gemini-pro" | "gemini-2.0-flash" = "gemini-2.5-pro-preview-03-25",
+  documentType?: DocumentType
 ): Promise<string> {
   try {
-    const res = await apiRequest("POST", "/api/generate", { prompt, model });
-    const data = await res.json();
-    return data.content;
+    // If a document type is provided, use structured output
+    if (documentType) {
+      const schema = documentSchemas[documentType] || documentSchemas["default"];
+      
+      const res = await apiRequest("POST", "/api/generate", { 
+        prompt, 
+        model,
+        schema
+      });
+      
+      const data = await res.json();
+      
+      // If structured data is received, use the mainContent field
+      if (data.mainContent) {
+        return data.mainContent;
+      } else if (data.content) {
+        return data.content;
+      } else {
+        // Fallback for unexpected response format
+        console.warn("Unexpected response format from AI generation:", data);
+        return JSON.stringify(data);
+      }
+    } else {
+      // Standard unstructured generation
+      const res = await apiRequest("POST", "/api/generate", { prompt, model });
+      const data = await res.json();
+      return data.content;
+    }
   } catch (error) {
     console.error("Error generating document content:", error);
     throw new Error("Failed to generate document content");
@@ -68,8 +210,8 @@ export async function generateProjectDocument(
   // Replace placeholders in the prompt template
   const prompt = replacePromptPlaceholders(template.prompt, replacements);
   
-  // Generate the content
-  const content = await generateDocumentContent(prompt);
+  // Generate the content with structured output using document type
+  const content = await generateDocumentContent(prompt, "gemini-2.5-pro-preview-03-25", documentType);
   
   // Create or update the document
   const existingDoc = existingDocuments.find(doc => doc.type === documentType);

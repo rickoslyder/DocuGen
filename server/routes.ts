@@ -251,7 +251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/generate", async (req, res) => {
     try {
       // Validate input
-      const { prompt, model } = req.body;
+      const { prompt, model, schema } = req.body;
       
       if (!prompt) {
         return res.status(400).json({ error: "Prompt is required" });
@@ -276,12 +276,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const genAI = new GoogleGenerativeAI(apiKey);
       const geminiModel = genAI.getGenerativeModel({ model: selectedModel });
       
-      // Generate content
-      const result = await geminiModel.generateContent(prompt);
-      const response = result.response;
-      const text = response.text();
-      
-      res.json({ content: text });
+      // Generate content with structured output if schema is provided
+      if (schema) {
+        try {
+          // Setup for structured output
+          const generationConfig = { temperature: 0.7 };
+          const result = await geminiModel.generateContent({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig,
+            responseSchema: schema,
+          });
+          
+          const response = result.response;
+          const structuredData = response.functionResponse?.responseParts;
+          
+          if (structuredData) {
+            res.json(structuredData);
+          } else {
+            // Fallback to text if structure isn't returned
+            res.json({ content: response.text() });
+          }
+        } catch (structuredError) {
+          console.error("Structured generation error:", structuredError);
+          // Fallback to unstructured generation
+          const result = await geminiModel.generateContent(prompt);
+          const response = result.response;
+          res.json({ content: response.text() });
+        }
+      } else {
+        // Standard unstructured generation
+        const result = await geminiModel.generateContent(prompt);
+        const response = result.response;
+        const text = response.text();
+        
+        res.json({ content: text });
+      }
     } catch (error) {
       console.error("Generation error:", error);
       res.status(500).json({ error: "Failed to generate content" });
@@ -307,6 +336,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const genAI = new GoogleGenerativeAI(apiKey);
       const evaluationModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       
+      // Define schema for structured output
+      const evaluationSchema = {
+        type: "object",
+        properties: {
+          score: {
+            type: "number",
+            description: "A rating from 0-10, where 10 is the highest quality"
+          },
+          feedback: {
+            type: "string",
+            description: "Detailed feedback explaining the evaluation of the content"
+          },
+          meets_criteria: {
+            type: "boolean",
+            description: "Whether the content meets the evaluation criteria"
+          },
+          improvement_suggestions: {
+            type: "array",
+            description: "A list of specific suggestions to improve the content",
+            items: {
+              type: "string"
+            }
+          }
+        },
+        required: ["score", "feedback", "meets_criteria", "improvement_suggestions"]
+      };
+      
       // Create evaluation prompt
       const evaluationPrompt = `
         Evaluate the following content based on these criteria:
@@ -315,31 +371,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
         Content to evaluate:
         ${content}
         
-        Provide your evaluation as a JSON object with the following structure:
-        {
-          "score": [0-10 numerical score],
-          "feedback": "Detailed feedback about the content",
-          "meets_criteria": true/false,
-          "improvement_suggestions": ["Suggestion 1", "Suggestion 2"]
-        }
+        Provide a structured evaluation with a score, detailed feedback, whether it meets criteria,
+        and specific improvement suggestions.
       `;
       
-      // Generate evaluation
-      const result = await evaluationModel.generateContent(evaluationPrompt);
-      const response = result.response;
-      const text = response.text();
-      
-      // Parse the result (expecting JSON)
       try {
-        const evaluation = JSON.parse(text);
-        res.json(evaluation);
-      } catch (parseError) {
-        res.json({ 
-          score: 5,
-          feedback: text,
-          meets_criteria: false,
-          improvement_suggestions: ["Could not parse structured evaluation. Please check the raw feedback."]
+        // Try structured output first
+        const generationConfig = { temperature: 0.3 };
+        const result = await evaluationModel.generateContent({
+          contents: [{ role: "user", parts: [{ text: evaluationPrompt }] }],
+          generationConfig,
+          responseSchema: evaluationSchema,
         });
+        
+        const response = result.response;
+        const structuredData = response.functionResponse?.responseParts[0];
+        
+        if (structuredData) {
+          res.json(JSON.parse(structuredData));
+        } else {
+          // Fallback to text parsing method
+          throw new Error("No structured response received");
+        }
+      } catch (structuredError) {
+        console.error("Structured evaluation error:", structuredError);
+        
+        // Fallback to original JSON text response approach
+        const oldPrompt = `
+          Evaluate the following content based on these criteria:
+          ${criteria}
+          
+          Content to evaluate:
+          ${content}
+          
+          Provide your evaluation as a JSON object with the following structure:
+          {
+            "score": [0-10 numerical score],
+            "feedback": "Detailed feedback about the content",
+            "meets_criteria": true/false,
+            "improvement_suggestions": ["Suggestion 1", "Suggestion 2"]
+          }
+        `;
+        
+        const result = await evaluationModel.generateContent(oldPrompt);
+        const response = result.response;
+        const text = response.text();
+        
+        // Parse the result (expecting JSON)
+        try {
+          const evaluation = JSON.parse(text);
+          res.json(evaluation);
+        } catch (parseError) {
+          res.json({ 
+            score: 5,
+            feedback: text,
+            meets_criteria: false,
+            improvement_suggestions: ["Could not parse structured evaluation. Please check the raw feedback."]
+          });
+        }
       }
     } catch (error) {
       console.error("Evaluation error:", error);
