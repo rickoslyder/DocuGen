@@ -12,7 +12,7 @@ import { Loader2, ArrowLeft, ArrowRight, Download, Settings } from "lucide-react
 import { Document, DocumentType, DOCUMENT_TYPE_ORDER, Project } from "@shared/schema";
 import { getDocuments, getNextDocumentType, getPreviousDocumentType, getProject, updateDocument } from "@/lib/database";
 import { useDocument } from "@/hooks/use-document";
-import { generateProjectDocument } from "@/lib/ai";
+import { generateProjectDocument, agentModeGenerateDocument } from "@/lib/ai";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { getTemplatesByType, updateTemplate } from "@/lib/database";
@@ -133,7 +133,13 @@ export default function DocumentEditing() {
           description: `Generating ${nextType.replace(/-/g, ' ')}...`
         });
         
-        await generateProjectDocument(project, nextType, allDocuments || []);
+        if (project.generationMode === "agent") {
+          // Use agent mode for more intelligent generation
+          await agentModeGenerateDocument(project, nextType, allDocuments || []);
+        } else {
+          // Use standard mode for basic generation
+          await generateProjectDocument(project, nextType, allDocuments || []);
+        }
         
         // Refresh documents
         queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/documents`] });

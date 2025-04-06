@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Document, DocumentType, InsertDocument, Project, Version } from "@shared/schema";
 import { createDocument, createVersion, getDocument, getDocumentByType, getDocuments, getVersions, updateDocument } from "@/lib/database";
 import { useToast } from "@/hooks/use-toast";
-import { generateProjectDocument } from "@/lib/ai";
+import { generateProjectDocument, agentModeGenerateDocument } from "@/lib/ai";
 
 export function useDocument(projectId: number, documentType: DocumentType) {
   const queryClient = useQueryClient();
@@ -120,7 +120,14 @@ export function useDocument(projectId: number, documentType: DocumentType) {
   // Regenerate document mutation
   const regenerateDocumentMutation = useMutation({
     mutationFn: async (context: { project: Project, documents: Document[] }) => {
-      return await generateProjectDocument(context.project, documentType, context.documents);
+      try {
+        // Use agent mode for more intelligent document generation with refinement
+        return await agentModeGenerateDocument(context.project, documentType, context.documents);
+      } catch (error) {
+        console.error("Error in agent mode generation:", error);
+        // Fall back to basic generation if agent mode fails
+        return await generateProjectDocument(context.project, documentType, context.documents);
+      }
     },
     onSuccess: (regeneratedDocument) => {
       // Update the document in the cache

@@ -5,7 +5,7 @@ import { createDocument, createVersion, getDefaultTemplate, getDocument, getDocu
 // Generate a document using Gemini API
 export async function generateDocumentContent(
   prompt: string,
-  model: "gemini-2.5-pro" | "gemini-2.0-flash" = "gemini-2.5-pro"
+  model: "gemini-2.5-pro-preview-03-25" | "gemini-pro" = "gemini-2.5-pro-preview-03-25"
 ): Promise<string> {
   try {
     const res = await apiRequest("POST", "/api/generate", { prompt, model });

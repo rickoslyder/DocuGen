@@ -265,8 +265,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate that the model is one of the allowed models
-      const allowedModels = ["gemini-2.5-pro", "gemini-2.0-flash"];
-      const selectedModel = model || "gemini-2.5-pro";
+      const allowedModels = ["gemini-2.5-pro-preview-03-25", "gemini-pro"];
+      const selectedModel = model || "gemini-2.5-pro-preview-03-25";
       
       if (!allowedModels.includes(selectedModel)) {
         return res.status(400).json({ error: "Invalid model specified" });
@@ -303,9 +303,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: "Gemini API key not found" });
       }
       
-      // Initialize the Gemini API with Gemini 2.0 Flash for evaluation
+      // Initialize the Gemini API with the correct model for evaluation
       const genAI = new GoogleGenerativeAI(apiKey);
-      const evaluationModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const evaluationModel = genAI.getGenerativeModel({ model: "gemini-pro" });
       
       // Create evaluation prompt
       const evaluationPrompt = `

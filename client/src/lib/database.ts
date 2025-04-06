@@ -37,6 +37,12 @@ export async function getDocument(id: number): Promise<Document> {
   return await res.json();
 }
 
+// Get document by project ID and type
+export async function getDocumentByType(projectId: number, type: string): Promise<Document | undefined> {
+  const documents = await getDocuments(projectId);
+  return documents.find(doc => doc.type === type);
+}
+
 export async function createDocument(document: InsertDocument): Promise<Document> {
   const res = await apiRequest("POST", "/api/documents", document);
   return await res.json();
