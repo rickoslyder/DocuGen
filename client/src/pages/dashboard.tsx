@@ -37,10 +37,14 @@ export default function Dashboard() {
   const getProjectStats = () => {
     if (!projects) return { count: 0, documents: 0, lastActivity: null };
     
+    const lastActivityDate = projects.length > 0 && projects[0].updatedAt 
+      ? new Date(projects[0].updatedAt) 
+      : null;
+      
     return {
       count: projects.length,
       documents: projects.reduce((total, p) => total + (p.metadata?.documentCount || 0), 0),
-      lastActivity: projects.length > 0 ? projects[0].updatedAt : null
+      lastActivity: lastActivityDate
     };
   };
 
