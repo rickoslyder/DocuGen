@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Document } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Bold, Italic, List, ListOrdered, Quote, Undo, Redo, Link as LinkIcon, Code, FileCode, FileText } from "lucide-react";
@@ -49,7 +49,9 @@ export default function DocumentEditor({ document, isLoading, onChange }: Docume
     if (editor && document && !isMarkdownMode) {
       // Only update if the content is different to avoid cursor jumps during typing
       if (editor.getHTML() !== document.content) {
-        editor.commands.setContent(document.content);
+        // Process content to make sure Markdown is properly handled
+        const processedContent = processMarkdownForEditor(document.content);
+        editor.commands.setContent(processedContent);
       }
     }
   }, [editor, document, isMarkdownMode]);
@@ -61,12 +63,58 @@ export default function DocumentEditor({ document, isLoading, onChange }: Docume
     onChange(newMarkdown);
   };
   
+  // Process markdown content to preserve line breaks and formatting
+  const processMarkdownForEditor = (markdownText: string) => {
+    // First, process multiline elements like lists
+    let processedText = markdownText;
+    
+    // Process bullet lists
+    const bulletListPattern = /(?:^|\n)((?:- .*(?:\n|$))+)/g;
+    processedText = processedText.replace(bulletListPattern, (match, listContent) => {
+      const listItems = listContent
+        .split('\n')
+        .filter(line => line.trim().startsWith('- '))
+        .map(line => `<li>${line.replace(/^- /, '')}</li>`)
+        .join('');
+      return `<ul>${listItems}</ul>`;
+    });
+    
+    // Process numbered lists
+    const numberedListPattern = /(?:^|\n)((?:\d+\. .*(?:\n|$))+)/g;
+    processedText = processedText.replace(numberedListPattern, (match, listContent) => {
+      const listItems = listContent
+        .split('\n')
+        .filter(line => /^\d+\. /.test(line.trim()))
+        .map(line => `<li>${line.replace(/^\d+\. /, '')}</li>`)
+        .join('');
+      return `<ol>${listItems}</ol>`;
+    });
+    
+    // Replace other markdown elements
+    return processedText
+      // Format headings
+      .replace(/^# (.*?)$/gm, '<h1>$1</h1>')
+      .replace(/^## (.*?)$/gm, '<h2>$1</h2>')
+      .replace(/^### (.*?)$/gm, '<h3>$1</h3>')
+      // Format bold and italic
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      // Format code blocks
+      .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+      // Format inline code
+      .replace(/`(.*?)`/g, '<code>$1</code>')
+      // Preserve remaining line breaks by converting them to <br> tags
+      // Do this last to avoid interfering with other patterns
+      .replace(/\n/g, '<br />');
+  };
+
   // Handle toggle between rich text and markdown modes
   const toggleEditMode = () => {
     if (isMarkdownMode) {
       // Switch from Markdown to Rich Text
       if (editor) {
-        editor.commands.setContent(markdownContent);
+        const processedContent = processMarkdownForEditor(markdownContent);
+        editor.commands.setContent(processedContent);
       }
     } else {
       // Switch from Rich Text to Markdown

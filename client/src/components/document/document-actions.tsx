@@ -23,7 +23,8 @@ export default function DocumentActions({
           size="sm" 
           onClick={onRegenerate}
           disabled={isSaving}
-          className="justify-start text-left"
+          className="justify-start text-left px-2 md:px-3"
+          title="Regenerate document with AI"
         >
           <RefreshCw className="h-4 w-4 mr-1 flex-shrink-0" />
           <span className="truncate">Regenerate</span>
@@ -33,7 +34,8 @@ export default function DocumentActions({
           size="sm" 
           onClick={onSave}
           disabled={isSaving}
-          className="justify-start text-left"
+          className="justify-start text-left px-2 md:px-3"
+          title="Save current changes"
         >
           <Save className="h-4 w-4 mr-1 flex-shrink-0" />
           <span className="truncate">{isSaving ? "Saving..." : "Save Changes"}</span>
@@ -43,7 +45,8 @@ export default function DocumentActions({
           size="sm" 
           onClick={onCustomizePrompt}
           disabled={isSaving}
-          className="justify-start text-left"
+          className="justify-start text-left px-2 md:px-3"
+          title="Edit the AI prompt template"
         >
           <Edit className="h-4 w-4 mr-1 flex-shrink-0" />
           <span className="truncate">Customize Prompt</span>
