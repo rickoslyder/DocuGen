@@ -5,7 +5,7 @@ import { createDocument, createVersion, getDefaultTemplate, getDocument, getDocu
 // Generate a document using Gemini API
 export async function generateDocumentContent(
   prompt: string,
-  model: "gemini-2.5-pro-preview-03-25" | "gemini-pro" = "gemini-2.5-pro-preview-03-25"
+  model: "gemini-2.5-pro-preview-03-25" | "gemini-pro" | "gemini-2.0-flash" = "gemini-2.5-pro-preview-03-25"
 ): Promise<string> {
   try {
     const res = await apiRequest("POST", "/api/generate", { prompt, model });
@@ -17,7 +17,7 @@ export async function generateDocumentContent(
   }
 }
 
-// Evaluate content using Gemini 2.0 Flash
+// Evaluate content using model specified in server
 export async function evaluateContent(content: string, criteria: string): Promise<{
   score: number;
   feedback: string;
@@ -169,45 +169,52 @@ export async function agentModeGenerateDocument(
   const criteria = EVALUATION_CRITERIA[documentType] || "Evaluate for completeness, clarity, and usefulness.";
   
   for (let i = 0; i < maxIterations; i++) {
-    // Evaluate the current document
-    const evaluation = await evaluateContent(document.content, criteria);
-    
-    // If it meets criteria, we're done
-    if (evaluation.meets_criteria) {
+    try {
+      // Evaluate the current document
+      const evaluation = await evaluateContent(document.content, criteria);
+      
+      // If it meets criteria, we're done
+      if (evaluation.meets_criteria) {
+        break;
+      }
+      
+      // Otherwise, refine the document
+      const improvementPrompt = `
+        Please improve the following ${DOCUMENT_TYPE_ORDER.indexOf(documentType) + 1}. ${documentType.replace(/-/g, ' ')} based on this feedback:
+        
+        ${evaluation.feedback}
+        
+        Suggested improvements:
+        ${evaluation.improvement_suggestions.join('\n')}
+        
+        Current content:
+        ${document.content}
+        
+        Please provide a complete, revised version addressing the feedback.
+      `;
+      
+      // Generate improved content using the original model
+      const improvedContent = await generateDocumentContent(improvementPrompt, "gemini-2.5-pro-preview-03-25");
+      
+      // Save the previous version
+      await createVersion({
+        documentId: document.id,
+        content: document.content,
+        source: "agent-refinement"
+      });
+      
+      // Update the document
+      document = await updateDocument(document.id, {
+        content: improvedContent,
+        status: "draft",
+        updatedAt: new Date()
+      });
+    } catch (error) {
+      console.error("Error in agent refinement iteration:", error);
+      // If we encounter an error during refinement, we'll exit the loop
+      // and return what we have so far
       break;
     }
-    
-    // Otherwise, refine the document
-    const improvementPrompt = `
-      Please improve the following ${DOCUMENT_TYPE_ORDER.indexOf(documentType) + 1}. ${documentType.replace(/-/g, ' ')} based on this feedback:
-      
-      ${evaluation.feedback}
-      
-      Suggested improvements:
-      ${evaluation.improvement_suggestions.join('\n')}
-      
-      Current content:
-      ${document.content}
-      
-      Please provide a complete, revised version addressing the feedback.
-    `;
-    
-    // Generate improved content
-    const improvedContent = await generateDocumentContent(improvementPrompt);
-    
-    // Save the previous version
-    await createVersion({
-      documentId: document.id,
-      content: document.content,
-      source: "agent-refinement"
-    });
-    
-    // Update the document
-    document = await updateDocument(document.id, {
-      content: improvedContent,
-      status: "draft",
-      updatedAt: new Date()
-    });
   }
   
   // Final update to mark as completed by agent

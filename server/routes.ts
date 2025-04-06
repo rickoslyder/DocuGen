@@ -265,7 +265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate that the model is one of the allowed models
-      const allowedModels = ["gemini-2.5-pro-preview-03-25", "gemini-pro"];
+      const allowedModels = ["gemini-2.5-pro-preview-03-25", "gemini-pro", "gemini-2.0-flash"];
       const selectedModel = model || "gemini-2.5-pro-preview-03-25";
       
       if (!allowedModels.includes(selectedModel)) {
@@ -305,7 +305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Initialize the Gemini API with the correct model for evaluation
       const genAI = new GoogleGenerativeAI(apiKey);
-      const evaluationModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const evaluationModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       
       // Create evaluation prompt
       const evaluationPrompt = `

@@ -29,7 +29,8 @@ export function useDocument(projectId: number, documentType: DocumentType) {
     queryKey: [`/api/projects/${projectId}/document/${documentType}`],
     queryFn: async () => {
       const docs = await getDocuments(projectId);
-      return docs.find(doc => doc.type === documentType);
+      const doc = docs.find(doc => doc.type === documentType);
+      return doc || null; // Return null instead of undefined
     },
     enabled: !isNaN(projectId),
   });
