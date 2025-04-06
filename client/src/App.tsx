@@ -7,6 +7,7 @@ import Dashboard from "@/pages/dashboard";
 import Projects from "@/pages/projects";
 import ProjectCreation from "@/pages/project-creation";
 import DocumentEditing from "@/pages/document-editing";
+import Templates from "@/pages/templates";
 
 function Router() {
   return (
@@ -15,6 +16,7 @@ function Router() {
       <Route path="/projects" component={Projects} />
       <Route path="/new-project" component={ProjectCreation} />
       <Route path="/projects/:id" component={DocumentEditing} />
+      <Route path="/templates" component={Templates} />
       <Route component={NotFound} />
     </Switch>
   );
