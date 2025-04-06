@@ -1,0 +1,441 @@
+### Specification Planning
+
+<specification_planning>
+
+Below, I analyze the project requirements for the Documentation Generator for AI Tools and plan the approach for creating a comprehensive technical specification. The planning addresses each required section, breaking down what needs to be included, identifying challenges, and considering edge cases.
+
+#### 1. Core System Architecture and Key Workflows
+- **What to Include:**
+  - Define the app’s purpose: automating documentation generation for AI tools.
+  - Outline key workflows: user submits an idea, system generates documents (guided or agent mode), documents are saved with version tracking.
+  - Specify architecture: PWA for web, Electron for desktop, client-side logic, AI integration (cloud and local), local data storage.
+- **Step-by-Step Breakdown:**
+  1. User inputs an idea.
+  2. System generates documents sequentially (guided) or autonomously (agent).
+  3. Documents are stored locally with metadata and versions.
+  4. Offline mode supports viewing/editing; online mode enables generation.
+- **Challenges/Clarifications:**
+  - Offline AI model integration: Gemini models are cloud-based; need local alternatives or limited offline functionality.
+  - Performance: Running AI locally may strain resources.
+- **Edge Cases/Error Handling:**
+  - No internet: Disable generation or use local models.
+  - Vague input: Prompt user for more details or generate with defaults.
+
+#### 2. Project Structure and Organization
+- **What to Include:**
+  - Modular monorepo: core logic, UI, AI integration, database, Electron-specific code.
+  - File/directory structure with purpose of each module.
+- **Step-by-Step Breakdown:**
+  1. Define `core` for shared logic (document generation, project management).
+  2. Define `ui` for React components.
+  3. Define `ai` for model integration.
+  4. Define `db` for SQLite handling.
+  5. Define `electron` for desktop-specific code.
+- **Challenges/Clarifications:**
+  - Ensuring code reuse between web and Electron versions.
+- **Edge Cases/Error Handling:**
+  - Missing dependencies: Clear build instructions.
+
+#### 3. Detailed Feature Specifications
+- **Features to Include:**
+  - Document Generation (guided and agent modes).
+  - Project Management (save, edit, version tracking).
+  - Custom Prompts/Templates.
+- **Step-by-Step Breakdown:**
+  - **Document Generation:**
+    1. User submits idea.
+    2. Guided: Generate document, user edits, repeat.
+    3. Agent: Generate all documents, refine iteratively.
+  - **Project Management:**
+    1. Save project with documents.
+    2. Allow editing and version tracking.
+  - **Custom Prompts:**
+    1. UI for editing prompts.
+    2. Store and apply custom prompts.
+- **Challenges/Clarifications:**
+  - Agent mode evaluation criteria: Define quality metrics.
+  - Offline generation: Local model selection.
+- **Edge Cases/Error Handling:**
+  - API failure: Retry or notify user.
+  - Invalid prompts: Validate before use.
+
+#### 4. Database Schema Design
+- **What to Include:**
+  - Tables: `projects`, `documents`, `versions`.
+  - Fields, types, constraints, relationships, indexes.
+- **Step-by-Step Breakdown:**
+  1. `projects`: Store project metadata.
+  2. `documents`: Link to projects, store content.
+  3. `versions`: Track document versions.
+- **Challenges/Clarifications:**
+  - Storage limits: Handle large documents/versions.
+- **Edge Cases/Error Handling:**
+  - Database corruption: Backup/export options.
+  - Duplicate IDs: Ensure unique constraints.
+
+#### 5. Server Actions and Integrations
+- **What to Include:**
+  - Client-side database actions (CRUD for projects/documents/versions).
+  - AI API integration (Gemini endpoints, local fallback).
+- **Step-by-Step Breakdown:**
+  - Database: Define SQL queries for CRUD.
+  - AI: API calls when online; local model logic when offline.
+- **Challenges/Clarifications:**
+  - Offline AI: Limited or no generation without internet.
+- **Edge Cases/Error Handling:**
+  - API rate limits: Queue requests or throttle.
+  - Offline mode: Graceful degradation.
+
+#### 6. Design System and Component Architecture
+- **What to Include:**
+  - Visual style: Colors, typography, spacing.
+  - Core components: Layout, navigation, editor, diagram viewer.
+  - Client-side React architecture with state management.
+- **Step-by-Step Breakdown:**
+  1. Define color palette and typography.
+  2. Design layout with sidebar and content area.
+  3. Implement components (e.g., rich text editor).
+- **Challenges/Clarifications:**
+  - Diagram generation: Automate via text-to-diagram tools.
+- **Edge Cases/Error Handling:**
+  - Small screens: Responsive design.
+  - Component failure: Fallback UI.
+
+#### 7. Authentication and Authorization Implementation
+- **What to Include:**
+  - Note that app is anonymous; no auth required.
+  - Data stored locally per device.
+- **Step-by-Step Breakdown:**
+  1. Skip auth implementation.
+  2. Ensure local storage security.
+- **Challenges/Clarifications:**
+  - None; anonymous use simplifies this.
+- **Edge Cases/Error Handling:**
+  - Data loss: Export/import functionality.
+
+#### 8. Data Flow and State Management
+- **What to Include:**
+  - React Context or Redux for state.
+  - Data passing between components.
+- **Step-by-Step Breakdown:**
+  1. Define state structure (projects, documents).
+  2. Pass data via context/props.
+- **Challenges/Clarifications:**
+  - State sync across tabs: Use local storage events.
+- **Edge Cases/Error Handling:**
+  - State corruption: Reset to default.
+
+#### 9. Payment Implementation
+- **What to Include:**
+  - Note that no payment is required.
+- **Step-by-Step Breakdown:**
+  - Omit section.
+- **Challenges/Clarifications:**
+  - None.
+- **Edge Cases/Error Handling:**
+  - N/A.
+
+#### 10. Analytics Implementation
+- **What to Include:**
+  - Note that no analytics is required.
+- **Step-by-Step Breakdown:**
+  - Omit section.
+- **Challenges/Clarifications:**
+  - None.
+- **Edge Cases/Error Handling:**
+  - N/A.
+
+#### 11. Testing Strategy
+- **What to Include:**
+  - Unit tests: Logic functions (e.g., prompt generation).
+  - E2E tests: Workflows (e.g., project creation).
+- **Step-by-Step Breakdown:**
+  1. Write Jest tests for core logic.
+  2. Write Playwright tests for user flows.
+- **Challenges/Clarifications:**
+  - Mocking AI API: Simulate responses.
+- **Edge Cases/Error Handling:**
+  - Test failures: Clear error messages.
+
+#### General Notes
+- **Risks:** Offline AI functionality is a major constraint due to Gemini’s cloud nature. Propose local models or limited offline mode.
+- **Clarifications Needed:** Confirm if offline generation is mandatory or if viewing/editing suffices.
+- **Solutions:** Use cloud API online, limit offline to editing, explore local models (e.g., GPT-J).
+
+Now, I’ll proceed with the full specification based on this plan.
+
+</specification_planning>
+
+---
+
+# Documentation Generator for AI Tools Technical Specification
+
+## 1. System Overview
+- **Core Purpose and Value Proposition**:  
+  The Documentation Generator for AI Tools automates the creation of comprehensive project documentation tailored for AI development tools (e.g., Cursor, Windsurf, Replit Agent). It offers a guided workflow for step-by-step document refinement and an autonomous agent mode, enhancing productivity for developers.
+
+- **Key Workflows**:  
+  1. User submits an initial project idea via a form.  
+  2. System generates documents (project request, technical spec, PRD, user flows, UI guide, implementation plan):  
+     - **Guided Mode**: User reviews and edits each document sequentially.  
+     - **Agent Mode**: System autonomously generates and refines all documents.  
+  3. Documents are saved in a project with metadata, summaries, and version tracking.  
+  4. Users can revisit, edit, and customize document generation prompts.
+
+- **System Architecture**:  
+  - Built as a Progressive Web App (PWA) using React with service workers for offline support.  
+  - Desktop version wrapped in Electron for local deployment.  
+  - Data stored locally using SQLite (via `sql.js` for web).  
+  - Document generation uses Gemini 2.5 Pro (cloud API) when online; Gemini 2.0 Flash for agent mode evaluation.  
+  - Offline mode supports viewing/editing existing documents; generation requires internet due to cloud-based AI.
+
+## 2. Project Structure
+- **Monorepo Setup**:  
+  ```
+  /project-root
+  ├── /core           # Shared logic
+  │   ├── documentGeneration.js
+  │   ├── projectManagement.js
+  ├── /ui             # React components
+  │   ├── /components
+  │   ├── /pages
+  ├── /ai             # AI model integration
+  │   ├── geminiApi.js
+  │   ├── localModel.js (optional)
+  ├── /db             # SQLite management
+  │   ├── schema.sql
+  │   ├── queries.js
+  ├── /electron       # Electron-specific code
+  │   ├── main.js
+  ├── package.json
+  ```
+  - **`core`**: Shared logic for document generation and project management.  
+  - **`ui`**: React components and pages for the interface.  
+  - **`ai`**: Handles Gemini API calls and potential local model integration.  
+  - **`db`**: Manages SQLite database operations.  
+  - **`electron`**: Electron-specific configurations and entry points.
+
+## 3. Feature Specification
+
+### 3.1 Document Generation
+- **User Story and Requirements**:  
+  As a user, I want to generate project documents from an idea, either through a guided process or autonomously, to streamline documentation for AI tools.  
+  - Supports guided and agent modes.  
+  - Documents: project request, technical spec, PRD, user flows, UI guide, implementation plan.
+
+- **Detailed Implementation Steps**:  
+  1. User submits idea via a text input form.  
+  2. **Guided Mode**:  
+     - System sends idea to Gemini 2.5 Pro API with a prompt (e.g., "Generate a project request for: {idea}").  
+     - Display generated document in a rich text editor (e.g., Quill).  
+     - User edits and saves; repeat for each document type.  
+  3. **Agent Mode**:  
+     - Generate all documents using Gemini 2.5 Pro.  
+     - For each document, evaluate with Gemini 2.0 Flash (e.g., "Does this meet criteria: {criteria}?").  
+     - Refine iteratively (max 5 iterations) if criteria unmet.  
+  4. Save documents to database with project linkage.
+
+- **Error Handling and Edge Cases**:  
+  - **API Failure**: Retry 3 times, then display "Generation unavailable; try again later."  
+  - **Vague Input**: Prompt user: "Please provide more details for better results."  
+  - **Infinite Loop in Agent Mode**: Cap iterations at 5; save best version.
+
+### 3.2 Project Management
+- **User Story and Requirements**:  
+  As a user, I want to save projects, revisit/edit documents, and track versions to manage my work efficiently.  
+  - Save projects with metadata and summaries.  
+  - Edit documents with version history.
+
+- **Detailed Implementation Steps**:  
+  1. On project creation, insert into `projects` table with name and metadata.  
+  2. Save each document in `documents` table, linked to `project_id`.  
+  3. On edit, save original as a new entry in `versions` table; update `documents` with new content.  
+  4. Display projects in a dashboard; allow selection to view/edit documents.  
+  5. Provide version history UI with revert option.
+
+- **Error Handling and Edge Cases**:  
+  - **Database Error**: Log error, notify user: "Failed to save; try again."  
+  - **Storage Limit**: Limit versions to 10 per document; prompt export for older versions.
+
+### 3.3 Custom Prompts/Templates
+- **User Story and Requirements**:  
+  As a user, I want to customize prompts/templates to tailor document generation to my needs.  
+  - Edit default prompts or create new ones.  
+  - Apply custom prompts during generation.
+
+- **Detailed Implementation Steps**:  
+  1. Provide a settings UI with a text area for each document type’s prompt.  
+  2. Store custom prompts in `projects.metadata` as JSON (e.g., `{"project_request": "Custom prompt..."}`).  
+  3. On generation, check for custom prompt; fall back to default if absent.  
+  4. Validate prompts for placeholders (e.g., `{idea}`).
+
+- **Error Handling and Edge Cases**:  
+  - **Invalid Prompt**: Alert: "Prompt must include {idea} placeholder."  
+  - **Poor Output**: Allow revert to default prompt.
+
+## 4. Database Schema
+
+### 4.1 Tables
+- **`projects`**  
+  ```
+  id INTEGER PRIMARY KEY AUTOINCREMENT
+  name TEXT NOT NULL
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  metadata TEXT  # JSON string for custom prompts, etc.
+  summary TEXT
+  ```
+- **`documents`**  
+  ```
+  id INTEGER PRIMARY KEY AUTOINCREMENT
+  project_id INTEGER NOT NULL FOREIGN KEY REFERENCES projects(id)
+  type TEXT NOT NULL  # e.g., 'project_request', 'technical_spec'
+  content TEXT NOT NULL
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ```
+- **`versions`**  
+  ```
+  id INTEGER PRIMARY KEY AUTOINCREMENT
+  document_id INTEGER NOT NULL FOREIGN KEY REFERENCES documents(id)
+  version_number INTEGER NOT NULL
+  content TEXT NOT NULL
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ```
+- **Relationships and Indexes**:  
+  - Foreign key: `documents.project_id` → `projects.id`.  
+  - Foreign key: `versions.document_id` → `documents.id`.  
+  - Index: `CREATE INDEX idx_documents_project_id ON documents(project_id);`  
+  - Index: `CREATE INDEX idx_versions_document_id ON versions(document_id);`
+
+## 5. Server Actions
+
+### 5.1 Database Actions
+- **Project CRUD**:  
+  - **Create**:  
+    - Description: Add a new project.  
+    - Input: `name: string, metadata: string, summary: string`  
+    - SQL: `INSERT INTO projects (name, metadata, summary) VALUES (?, ?, ?);`  
+    - Return: New `id`.  
+  - **Read**:  
+    - Description: Fetch a project by ID.  
+    - Input: `id: number`  
+    - SQL: `SELECT * FROM projects WHERE id = ?;`  
+    - Return: Project object.  
+  - Similar CRUD for `documents` and `versions`.
+
+### 5.2 Other Actions
+- **Gemini API Integration**:  
+  - **Endpoint**: `POST https://api.gemini.com/v1/generate` (hypothetical).  
+  - **Authentication**: API key in header (`X-API-KEY`).  
+  - **Data Format**:  
+    - Request: `{ "prompt": string, "model": "2.5-pro" | "2.0-flash" }`  
+    - Response: `{ "text": string }`  
+  - **Offline Fallback**: Display: "Document generation unavailable offline."
+
+## 6. Design System
+
+### 6.1 Visual Style
+- **Color Palette**:  
+  - Primary: `#007bff` (blue)  
+  - Secondary: `#6c757d` (gray)  
+  - Background: `#f8f9fa` (light gray)  
+  - Text: `#212529` (dark gray)  
+- **Typography**:  
+  - Font Family: `Roboto, sans-serif`  
+  - Sizes: H1 `32px`, H2 `24px`, H3 `18px`, Body `16px`  
+  - Weights: Regular (400), Bold (700)  
+- **Component Styling Patterns**:  
+  - Buttons: `padding: 8px; border-radius: 4px;`  
+  - Cards: `border: 1px solid #dee2e6; border-radius: 4px;`  
+- **Spacing and Layout**:  
+  - 8px grid system (e.g., margins/padding in multiples of 8px).
+
+### 6.2 Core Components
+- **Layout Structure**:  
+  ```
+  <div className="app">
+    <Sidebar />  <!-- Navigation -->
+    <MainContent />  <!-- Document editor/dashboard -->
+  </div>
+  ```
+- **Navigation Patterns**:  
+  - Sidebar with links: Dashboard, Projects, Settings.  
+- **Shared Components**:  
+  - `RichTextEditor`: Props: `{ content: string, onChange: (content: string) => void }`  
+  - `DiagramViewer`: Uses Mermaid.js; Props: `{ text: string }`  
+- **Interactive States**:  
+  - Button: Hover (`background: #0056b3`), Disabled (`opacity: 0.5`).
+
+## 7. Component Architecture
+
+### 7.1 Server Components
+- N/A (client-side app; no server-side rendering).
+
+### 7.2 Client Components
+- **State Management Approach**: React Context for projects/documents.  
+  ```typescript
+  interface AppState {
+    projects: Project[];
+    currentProject?: Project;
+  }
+  ```
+- **Event Handlers**:  
+  - `handleSaveDocument(content: string)`: Updates `documents` table.  
+- **UI Interactions**:  
+  - Wizard for guided mode; dashboard for project selection.  
+- **Props Interface**:  
+  ```typescript
+  interface DocumentEditorProps {
+    document: { id: number; type: string; content: string };
+    onSave: (content: string) => void;
+  }
+  ```
+
+## 8. Authentication & Authorization
+- **Implementation Details**:  
+  - No authentication; app is anonymous.  
+  - Data stored locally per device using SQLite.  
+- **Security**:  
+  - No server-side risks due to client-side operation.
+
+## 9. Data Flow
+- **Server/Client Data Passing**: N/A (client-side).  
+- **State Management Architecture**:  
+  - Context provides `projects`, `currentProject`.  
+  - Components subscribe to updates via `useContext`.  
+- **Example**:  
+  ```typescript
+  const { currentProject, setCurrentProject } = useContext(AppContext);
+  ```
+
+## 10. Stripe Integration
+- Omitted; no payment required.
+
+## 11. PostHog Analytics
+- Omitted; no analytics required.
+
+## 12. Testing
+- **Unit Tests with Jest**:  
+  - **Example**: Test prompt generation.  
+    ```javascript
+    test('generates project request prompt', () => {
+      const idea = 'A chatbot app';
+      const prompt = generatePrompt(idea, 'project_request');
+      expect(prompt).toContain(idea);
+    });
+    ```
+- **E2E Tests with Playwright**:  
+  - **Key Flow**: Create project, generate document.  
+    ```javascript
+    test('creates project and generates document', async ({ page }) => {
+      await page.goto('/dashboard');
+      await page.fill('#idea-input', 'Test app');
+      await page.click('#generate-btn');
+      await expect(page.locator('.document-editor')).toBeVisible();
+    });
+    ```
+
+---
+
+This specification provides a detailed, structured blueprint for the Documentation Generator for AI Tools, ready for AI-driven planning and code generation. It balances requirements with practical constraints (e.g., offline AI limitations) and includes specific guidance for implementation. Let me know if further adjustments are needed!

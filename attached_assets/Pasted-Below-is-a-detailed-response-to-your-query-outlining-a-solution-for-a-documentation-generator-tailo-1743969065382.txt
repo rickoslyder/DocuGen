@@ -1,0 +1,107 @@
+Below is a detailed response to your query, outlining a solution for a documentation generator tailored for AI tools. I’ve incorporated all your requirements into a clear, step-by-step project request, ensuring the app meets your needs for both functionality and usability. Let’s dive into the solution!
+
+---
+
+## Documentation Generator for AI Tools
+
+### Project Overview
+This is a web-based application designed to automate the creation of comprehensive documentation for web app projects, optimized for use with AI tools like Cursor, Windsurf, Replit Agent, and various LLMs (e.g., ChatGPT, Claude, Gemini). The app takes an initial idea or description from the user and generates a set of detailed documents that sequentially build upon each other. It operates in two modes—**Agent mode** (fully automated with LLM refinement) and **Standard mode** (user-guided)—and supports offline use, project management, custom prompts, and version tracking.
+
+---
+
+### Core Features
+
+#### Document Generation
+The app generates the following documents, each feeding into the next in a sequential process:
+1. **Project Request**: Outlines the initial idea, goals, and scope.
+2. **Technical Specification**: Includes detailed code snippets and technical requirements.
+3. **Product Requirements Document (PRD)**: Defines product features, objectives, and constraints.
+4. **User Flows**: Provides text descriptions and diagrams (e.g., UML, Mermaid, GraphViz, or Python-generated visuals).
+5. **UI and Styling Guide**: Details design elements and styling rules.
+6. **Implementation Plan**: Offers a step-by-step roadmap for development.
+
+- **Sequential Workflow**: Each document builds on the previous one. For example, the Project Request informs the Technical Spec, which feeds into the PRD, and so on.
+- **Detail-Oriented**: Documents include as much useful detail as possible, such as:
+  - Code snippets in the Technical Spec (e.g., pseudocode or specific language examples).
+  - Diagrams and text descriptions in User Flows (generated via tools like Mermaid or Python visualization scripts if feasible).
+- **Dynamic Templates**: Predefined templates are used as a starting point, with options to dynamically remix or vary them based on the input idea. Users can also modify or create their own prompts/templates.
+
+#### Operating Modes
+- **Agent Mode**:
+  - The LLM (Gemini 2.0 Flash) autonomously generates and refines documents iteratively.
+  - It judges its own output based on predefined quality criteria (e.g., completeness, coherence, technical accuracy) until the documentation is deemed complete.
+- **Standard Mode**:
+  - Users provide inputs and decisions at key points during the generation process, reviewing and refining each document individually.
+
+#### Guided Workflow
+- A step-by-step wizard guides users through document generation:
+  1. Submit the initial idea via an intuitive input form.
+  2. Review and refine the Project Request.
+  3. Proceed to the Technical Spec, editing as needed.
+  4. Continue through PRD, User Flows, UI Guide, and Implementation Plan, with options to edit drafts at each stage.
+- Users can save progress, revisit, and adjust documents at any point.
+
+#### Project Management
+- **Organization**: Documents are grouped into projects for easy access.
+- **Save and Edit**: Users can save, revisit, and edit previously generated documents.
+- **Version Tracking**: Changes are tracked over time, with the ability to revert to previous versions.
+- **Metadata and Summaries**: Each project includes auto-generated metadata and composite summaries based on the idea and documents, presented on a dashboard.
+
+---
+
+### Technical Specifications
+
+#### AI Models
+- **Document Generation**: Powered by **Gemini 2.5 Pro (gemini-2.5-pro-preview-03-25)** for high-quality, detailed output.
+- **Agent Mode Judging**: Uses **Gemini 2.0 Flash (gemini-2.0-flash)** for evaluating and refining documents.
+
+#### Deployment
+- **Web App**: Deployable as a responsive web application.
+- **Offline/Local Use**: Usable offline via a local deployment (e.g., packaged as an Electron app) with all project data stored locally.
+- **No Authentication**: The app operates anonymously without user accounts or login requirements.
+
+#### User Interface
+- **Input Form**: Simple and intuitive for submitting the initial idea.
+- **Dashboard**: Displays projects, documents, metadata, and summaries.
+- **Design**: Clean, modern, and responsive for use across devices.
+
+---
+
+### Additional Details
+
+#### Customization
+- Users can modify or create their own prompts/templates to tailor document generation to specific needs or project types.
+
+#### Target Use Case
+- Optimized for users feeding documentation into AI tools (e.g., Cursor, Windsurf, Replit Agent) or LLMs (e.g., ChatGPT, Claude, Gemini) as context for development or analysis.
+
+#### No Security/Compliance Needs
+- Security and compliance are not required at this stage, allowing focus on core functionality.
+
+---
+
+### Step-by-Step Process (Guided Workflow Example)
+Here’s how a user might experience the app in Standard mode:
+1. **Enter Idea**: User submits a description like “A task management app with real-time collaboration.”
+2. **Project Request**: App generates a draft; user reviews and refines it (e.g., adds specific goals).
+3. **Technical Spec**: Based on the Project Request, a draft with code snippets is created; user edits technical details.
+4. **PRD**: Incorporates prior documents; user adjusts feature priorities.
+5. **User Flows**: Diagrams (e.g., Mermaid) and text are generated; user tweaks the flow.
+6. **UI Guide**: Styling rules are drafted; user refines the design.
+7. **Implementation Plan**: A roadmap is created; user finalizes the timeline.
+8. **Save Project**: The project is saved with metadata (e.g., “Task management app, real-time focus”) and a summary.
+
+In Agent mode, the LLM handles steps 2–7 autonomously, refining each document iteratively.
+
+---
+
+### Why This Solution Works
+- **Sequential Documents**: The step-by-step process ensures coherence and builds context progressively.
+- **Flexibility**: Dynamic templates and custom prompts accommodate diverse project needs.
+- **Dual Modes**: Agent mode saves time, while Standard mode offers control.
+- **Offline Support**: Local deployment meets your offline requirement.
+- **AI Optimization**: Detailed output with code and diagrams suits AI tool workflows.
+
+---
+
+Let me know if you’d like to refine any part of this further or add more specifics! This app is ready to streamline your documentation process for AI-driven development.
