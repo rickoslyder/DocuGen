@@ -287,9 +287,10 @@ export default function DocumentEditing() {
             <div className="grid grid-cols-1 md:grid-cols-4">
               {/* Sidebar Actions/History */}
               <div className="border-r border-gray-200 bg-gray-50 p-4">
+                {/* Document actions with immediate save for button click */}
                 <DocumentActions 
                   onRegenerate={() => regenerateDocument(project, allDocuments || [])}
-                  onSave={saveDocument}
+                  onSave={() => saveDocument(undefined, true)}
                   onCustomizePrompt={() => setIsCustomizingPrompt(true)}
                   isSaving={isSaving}
                 />
@@ -299,7 +300,8 @@ export default function DocumentEditing() {
                   documentId={document?.id}
                   onRestoreVersion={(version) => {
                     if (document) {
-                      saveDocument(version.content);
+                      // Use immediate save for version restoration
+                      saveDocument(version.content, true);
                       toast({
                         title: "Version Restored",
                         description: "Document has been restored to a previous version."
@@ -316,7 +318,8 @@ export default function DocumentEditing() {
                   isLoading={isLoadingDocument}
                   onChange={(content) => {
                     if (document) {
-                      saveDocument(content);
+                      // Use the debounced save for typing - this will not jump focus
+                      saveDocument(content, false);
                     }
                   }}
                 />

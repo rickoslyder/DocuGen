@@ -3,7 +3,7 @@ import { RefreshCw, Save, Edit } from "lucide-react";
 
 interface DocumentActionsProps {
   onRegenerate: () => Promise<void>;
-  onSave: () => Promise<void>;
+  onSave: () => void; // Changed return type to match our implementation
   onCustomizePrompt: () => void;
   isSaving: boolean;
 }

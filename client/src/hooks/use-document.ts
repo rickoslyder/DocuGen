@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Document, DocumentType, InsertDocument, Project, Version } from "@shared/schema";
 import { createDocument, createVersion, getDocument, getDocumentByType, getDocuments, getVersions, updateDocument } from "@/lib/database";
@@ -158,14 +158,47 @@ export function useDocument(projectId: number, documentType: DocumentType) {
     },
   });
   
-  // Save document function
-  const saveDocument = async (newContent?: string) => {
-    // If we have pending changes, use those, otherwise use the provided content
-    const contentToSave = newContent || pendingChanges || lastSavedContent;
-    if (contentToSave) {
-      saveDocumentMutation.mutate(contentToSave);
+  // Debounce timer ref
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Create a debounced version of the save function to avoid frequent saves
+  const debouncedSave = useCallback((content: string) => {
+    // Update the pendingChanges state immediately for UI feedback
+    setPendingChanges(content);
+    
+    // Clear any existing timer
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
     }
-  };
+    
+    // Set a new timer
+    saveTimerRef.current = setTimeout(() => {
+      // Only save if the content is different from the last saved content
+      if (content !== lastSavedContent) {
+        saveDocumentMutation.mutate(content);
+      }
+    }, 2000); // 2-second debounce
+  }, [lastSavedContent, saveDocumentMutation]);
+  
+  // Save document function - debounced for typing, immediate for explicit saves
+  const saveDocument = useCallback((newContent?: string, immediate = false) => {
+    // If we have pendingChanges (from typing) or provided newContent
+    const contentToSave = newContent || pendingChanges || lastSavedContent;
+    
+    if (contentToSave) {
+      if (immediate) {
+        // For explicit saves (like clicking Save button), save immediately
+        if (saveTimerRef.current) {
+          clearTimeout(saveTimerRef.current);
+          saveTimerRef.current = null;
+        }
+        saveDocumentMutation.mutate(contentToSave);
+      } else {
+        // For auto-saves from typing, use the debounced version
+        debouncedSave(contentToSave);
+      }
+    }
+  }, [pendingChanges, lastSavedContent, debouncedSave, saveDocumentMutation]);
   
   // Regenerate document function
   const regenerateDocument = async (project: Project, documents: Document[]) => {
