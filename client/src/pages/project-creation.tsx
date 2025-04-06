@@ -27,7 +27,7 @@ export default function ProjectCreation() {
   const queryClient = useQueryClient();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<InsertProject>({
+  const [formData, setFormData] = useState<InsertProject & { template: string }>({
     name: "",
     description: "",
     generationMode: "standard",
@@ -207,7 +207,7 @@ export default function ProjectCreation() {
                   <div className="mb-6">
                     <Label htmlFor="template">Template (Optional)</Label>
                     <Select 
-                      value={formData.template} 
+                      defaultValue="default"
                       onValueChange={handleTemplateChange}
                     >
                       <SelectTrigger className="w-full mt-1">
@@ -238,9 +238,9 @@ export default function ProjectCreation() {
                     <Button 
                       type="submit"
                       disabled={isSubmitting}
-                      className="bg-primary-600 hover:bg-primary-700"
+                      variant="default"
                     >
-                      {isSubmitting ? "Processing..." : "Start Generation"}
+                      {isSubmitting ? "Processing..." : "Create Project"}
                     </Button>
                   </div>
                 </form>

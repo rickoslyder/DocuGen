@@ -73,8 +73,8 @@ export class DatabaseStorage implements IStorage {
       await this.deleteDocument(doc.id);
     }
     
-    const result = await db.delete(projects).where(eq(projects.id, id));
-    return result.count > 0;
+    await db.delete(projects).where(eq(projects.id, id));
+    return true;
   }
 
   // Document operations
@@ -126,8 +126,8 @@ export class DatabaseStorage implements IStorage {
     // Delete associated versions first
     await db.delete(versions).where(eq(versions.documentId, id));
     
-    const result = await db.delete(documents).where(eq(documents.id, id));
-    return result.count > 0;
+    await db.delete(documents).where(eq(documents.id, id));
+    return true;
   }
 
   // Version operations
